@@ -30,7 +30,7 @@
     </div>
 
     <script>
-        // MASUKKAN PAUTAN WEB APP GOOGLE APPS SCRIPT ANDA DI SINI
+        // PASTIKAN ANDA MASUKKAN PAUTAN WEB APP GOOGLE APPS SCRIPT ANDA DI SINI
         const GAS_URL = "https://script.google.com/macros/s/AKfycbz3NwSfLl_H1NTZ24V1Cy5heItF_L7ZlmmG2HDF1pnR3L2DYjVLNjn-VsVWQDej-cEUsg/exec";
 
         const video = document.getElementById('video');
@@ -40,12 +40,13 @@
         const sendStatus = document.getElementById('send-status');
 
         let modelsLoaded = false;
-        let isSending = false; // Elakkan hantar bertalu-talu dalam masa singkat
+        let isSending = false;
 
         async function loadModels() {
             try {
                 statusText.innerText = "Memuatkan fail model AI...";
-                const MODEL_URL = 'https://justadudewhohacks.github.io/face-api.js/models';
+                // Menggunakan pautan jsDelivr yang lebih stabil untuk weights/models
+                const MODEL_URL = 'https://cdn.jsdelivr.net/gh/justadudewhohacks/face-api.js@master/weights';
                 
                 await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL);
                 await faceapi.nets.faceLandmarkTinyNet.loadFromUri(MODEL_URL);
@@ -55,7 +56,7 @@
                 statusText.innerText = "Sila halakan kamera ke muka.";
                 startCamera();
             } catch (error) {
-                statusText.innerText = "Gagal memuatkan model. Semak internet.";
+                statusText.innerText = "Gagal memuatkan model. Semak internet/rangkaian.";
                 console.error(error);
             }
         }
@@ -92,22 +93,21 @@
                     statusText.className = "text-green-400 text-sm mb-4";
                     
                     resultBox.classList.remove('hidden');
-                    // Contoh nama statik/sementara. Anda boleh tambah sistem input nama pengguna nanti.
-                    let namaIndividu = "Ahmad Mubarak"; 
+                    let namaIndividu = "Ahmad Mubarak"; // Nama sementara
                     detectedName.innerText = namaIndividu;
 
-                    // Hantar data ke Google Sheets melalui GAS
+                    // Hantar data ke Google Sheets
                     hantarKeGoogleSheets(namaIndividu);
 
                 } else {
                     statusText.innerText = "Mencari wajah...";
                     statusText.className = "text-yellow-400 text-sm mb-4";
                 }
-            }, 1000); // Semak setiap 1 saat
+            }, 1000);
         });
 
         async function hantarKeGoogleSheets(nama) {
-            if (GAS_URL.includes("PAKAN_WEB_APP")) {
+            if (GAS_URL.includes("PAUTAN_WEB_APP")) {
                 sendStatus.innerText = "Amaran: Sila masukkan pautan GAS URL dalam kod!";
                 return;
             }
@@ -118,14 +118,13 @@
             try {
                 await fetch(GAS_URL, {
                     method: 'POST',
-                    mode: 'no-cors', // Diperlukan untuk elakkan isu CORS Google Apps Script
+                    mode: 'no-cors',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ nama: nama, status: "Hadir" })
                 });
 
                 sendStatus.innerText = "Berjaya direkodkan ke Google Sheets! ✅";
                 
-                // Beri masa bertenang 10 saat sebelum boleh imbas rekod seterusnya
                 setTimeout(() => {
                     isSending = false;
                     sendStatus.innerText = "";
